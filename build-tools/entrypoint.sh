@@ -34,6 +34,7 @@ cd /workspace
 mkdir -p /build-artifacts
 
 cd /workspace/build/usk/
-mkdir "ONLY USE IN ${PICO_BOARD} BOARD"
-zip /build-artifacts/BrokenFly-${PICOFLY_VERSION}-${PICO_BOARD}-${PICOFLY_GIT_VERSION}.zip firmware.uf2 update.bin "ONLY USE IN ${PICO_BOARD} BOARD"
+WARN_MESSAGE="ONLY USE WITH ${PICO_BOARD^^} BOARD"
+mkdir "$WARN_MESSAGE"
+zip /build-artifacts/BrokenFly-${PICOFLY_VERSION}-${PICO_BOARD}-${PICOFLY_GIT_VERSION}.zip firmware.uf2 update.bin "$WARN_MESSAGE"
 cd /workspace
