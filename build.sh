@@ -6,13 +6,13 @@ echo "Building version $VERSION-$GIT_VERSION"
 sleep 2
 rm -rf build/*
 
-
+# Only build if running outside GitHub Actions, otherwise it's built in the workflow
 if [ "$GITHUB_ACTIONS" != "true" ]; then
     docker build -f "$(pwd)/build-tools/Dockerfile" -t brokenfly-build .
 fi
 
-docker run --rm  -v "$(pwd)/build:/build-artifacts" brokenfly-build seeed_xiao_rp2040 $VERSION $GIT_VERSION
-docker run --rm  -v "$(pwd)/build:/build-artifacts" brokenfly-build waveshare_rp2040_zero $VERSION $GIT_VERSION
-docker run --rm  -v "$(pwd)/build:/build-artifacts" brokenfly-build waveshare_rp2040_one $VERSION $GIT_VERSION
-docker run --rm  -v "$(pwd)/build:/build-artifacts" brokenfly-build adafruit_itsybitsy_rp2040 $VERSION $GIT_VERSION
-docker run --rm  -v "$(pwd)/build:/build-artifacts" brokenfly-build hal9000 $VERSION $GIT_VERSION
+
+for file in $(pwd)/boards/*.h; do
+  BOARD="$(basename "$file" .h)"
+  docker run --rm  -v "$(pwd)/build:/build-artifacts" brokenfly-build $BOARD $VERSION $GIT_VERSION
+done
