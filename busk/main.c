@@ -14,11 +14,8 @@
 void pins_setup(void)
 {
 	// avoid mosfet enable no matter what
-	gpio_pull_down(PIN_GLI_WS);
-	gpio_pull_down(PIN_GLI_XIAO);
-	gpio_pull_down(PIN_GLI_PICO);
-	gpio_pull_down(PIN_GLI_ITSY);
-	*(uint32_t*)(0x4001c000 + 4 + PIN_RST*4 + 0x2000) = 0x81;
+	gpio_pull_down(PICOFLY_PIN_GLI);
+	*(uint32_t*)(0x4001c000 + 4 + PICOFLY_PIN_RST*4 + 0x2000) = 0x81;
 }
 
 // overclock setup
@@ -44,7 +41,7 @@ void halt() {
 	for(int pin = 0; pin <= 29; pin += 1) {
         uint32_t pad_reg = 0x4001c000 + 4 + pin*4;
 		// glitch pin pulldown, just in case
-        if (pin == PIN_GLI_PICO || pin == PIN_GLI_XIAO || pin == PIN_GLI_WS || pin == PIN_GLI_ITSY)
+        if (pin == PICOFLY_PIN_GLI)
             *(uint32_t*)pad_reg = 0x85; //pulldown
         else
             *(uint32_t*)pad_reg = 0x81;

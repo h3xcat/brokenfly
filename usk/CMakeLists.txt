@@ -16,7 +16,7 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(usk main.c board_detect.c fuses.c pio_upload.c boot_detect.c config.c misc.c payload.c glitch.c)
+add_executable(usk main.c fuses.c pio_upload.c boot_detect.c config.c misc.c payload.c glitch.c)
 
 target_compile_definitions(usk PRIVATE PICO_NO_BINARY_INFO)
 

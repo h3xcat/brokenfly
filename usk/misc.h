@@ -15,3 +15,5 @@ void gpio_enable_input_output(int pin);
 void finish_pins_except_leds();
 
 void reset_cpu();
+
+bool detect_by_pull_up(int frc_pin, int det_pin);

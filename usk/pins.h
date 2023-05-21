@@ -1,37 +1,53 @@
-#define PIN_GLI_WS 15
-#define PIN_GLI_XIAO 6
-#define PIN_GLI_PICO 21
-#define PIN_GLI_ITSY 24
+#if defined(WAVESHARE_RP2040_ONE)
+#define PICOFLY_PIN_GLI 15
+#define PICOFLY_PIN_SDA 12
+#define PICOFLY_PIN_SCL 13
 
-#define PIN_LED_WS 16
-#define PIN_LED_ITSY 17
-#define PIN_LED_XIAO 12
-#define PIN_LED_PICO 25
+#define PICOFLY_PIN_LED 16
+#define PICOFLY_PIN_LED_PWR 31
+#define PICOFLY_PIN_RGB_MODE 25
+#elif defined(WAVESHARE_RP2040_ZERO)
+#define PICOFLY_PIN_GLI 15
+#define PICOFLY_PIN_SDA 12
+#define PICOFLY_PIN_SCL 13
 
-#define PIN_LED_PWR_XIAO 11
-#define PIN_LED_RED_XIAO 17
-#define PIN_LED_GRN_XIAO 16
-#define PIN_LED_BLU_XIAO 25
+#define PICOFLY_PIN_LED 16
+#define PICOFLY_PIN_LED_PWR 31
+#define PICOFLY_PIN_RGB_MODE 25
+#elif defined(ADAFRUIT_ITSYBITSY_RP2040)
+#define PICOFLY_PIN_GLI 24
+#define PICOFLY_PIN_SDA 18
+#define PICOFLY_PIN_SCL 19
 
-#define PIN_SDA_WS 12
-#define PIN_SDA_XIAO 3
-#define PIN_SDA_PICO 19
-#define PIN_SDA_ITSY 18
-#define PIN_SDA_SQC 18
+#define PICOFLY_PIN_LED 17
+#define PICOFLY_PIN_LED_PWR 16
+#elif defined(SEEED_XIAO_RP2040)
+#define PICOFLY_PIN_GLI 6
+#define PICOFLY_PIN_SDA 3
+#define PICOFLY_PIN_SCL 4
 
-#define PIN_SCL_WS 13
-#define PIN_SCL_XIAO 4
-#define PIN_SCL_PICO 20
-#define PIN_SCL_ITSY 19
-#define PIN_SCL_SQC 19
+#define PICOFLY_PIN_LED 12
+#define PICOFLY_PIN_LED_PWR 11
+#define PICOFLY_PIN_LED_RED 17
+#define PICOFLY_PIN_LED_GRN 16
+#define PICOFLY_PIN_LED_BLU 25
+#elif defined(RASPBERRYPI_PICO)
+#error "Not supported"
+// #define PICOFLY_PIN_GLI 21
+// #define PICOFLY_PIN_SDA 19
+// #define PICOFLY_PIN_SCL 20
 
-#define PIN_LED_PWR_ITSY 16
+// #define PICOFLY_PIN_LED 25
+// #define PICOFLY_PIN_LED_PWR 31
+#else 
+#error "No RP2040 board specified"
+#endif
 
-#define PIN_RGB_MODE_WS 25
 
-#define PIN_DAT 29
-#define PIN_CMD 28
-#define PIN_CLK 27
-#define PIN_RST 26
 
-#define PIN_TEMP_PICO 29
+#define PICOFLY_PIN_DAT 29
+#define PICOFLY_PIN_CMD 28
+#define PICOFLY_PIN_CLK 27
+#define PICOFLY_PIN_RST 26
+
+#define PICOFLY_PIN_TEMP_PICO 29

@@ -4,9 +4,7 @@
 #include <string.h>
 #include "hardware/vreg.h"
 #include "ws2812.pio.h"
-#include "board_detect.h"
 #include "misc.h"
-#include "board_detect.h"
 
 extern int ws_pio_offset;
 
@@ -47,9 +45,9 @@ void __not_in_flash_func(zzz)() {
 
 void finish_pins_except_leds() {
     for(int pin = 0; pin <= 29; pin += 1) {
-        if (pin == led_pin() || pin == pwr_pin())
+        if (pin == PICOFLY_PIN_LED || pin == PICOFLY_PIN_LED_PWR)
             continue;
-        if (pin == PIN_GLI_PICO || pin == PIN_GLI_XIAO || pin == PIN_GLI_WS || pin == PIN_GLI_ITSY)
+        if (pin == PICOFLY_PIN_GLI)
         {
             gpio_pull_down(pin);
         }
@@ -62,8 +60,8 @@ void finish_pins_except_leds() {
 }
 
 void finish_pins_leds() {
-    gpio_disable_input_output(led_pin());
-    gpio_disable_input_output(pwr_pin());
+    gpio_disable_input_output(PICOFLY_PIN_LED);
+    gpio_disable_input_output(PICOFLY_PIN_LED_PWR);
 }
 
 void halt_with_error(uint32_t err, uint32_t bits)
@@ -100,29 +98,28 @@ void halt_with_error(uint32_t err, uint32_t bits)
 void put_pixel(uint32_t pixel_grb)
 {
     static bool led_enabled = false;
-    if (is_pico())
-    {
-        gpio_init(led_pin());
+    #if defined(RASPBERRYPI_PICO)
+        gpio_init(PICOFLY_PIN_LED);
         if (pixel_grb) {
-            gpio_set_dir(led_pin(), true);
-            gpio_put(led_pin(), 1);
+            gpio_set_dir(PICOFLY_PIN_LED, true);
+            gpio_put(PICOFLY_PIN_LED, 1);
         }
-        return;
-    }
-    ws2812_program_init(pio0, 3, ws_pio_offset, led_pin(), 800000, true);
-    if (!led_enabled && pwr_pin() != 31)
-    {
-        led_enabled = true;
-        gpio_init(pwr_pin());
-        gpio_set_drive_strength(pwr_pin(), GPIO_DRIVE_STRENGTH_12MA);
-        gpio_set_dir(pwr_pin(), true);
-        gpio_put(pwr_pin(), 1);
-        sleep_us(200);
-    }
-    pio_sm_put_blocking(pio0, 3, pixel_grb << 8u);
-    sleep_us(50);
-    pio_sm_set_enabled(pio0, 3, false);
-    gpio_init(led_pin());
+    #else
+        ws2812_program_init(pio0, 3, ws_pio_offset, PICOFLY_PIN_LED, 800000, true);
+        if (!led_enabled && PICOFLY_PIN_LED_PWR != 31)
+        {
+            led_enabled = true;
+            gpio_init(PICOFLY_PIN_LED_PWR);
+            gpio_set_drive_strength(PICOFLY_PIN_LED_PWR, GPIO_DRIVE_STRENGTH_12MA);
+            gpio_set_dir(PICOFLY_PIN_LED_PWR, true);
+            gpio_put(PICOFLY_PIN_LED_PWR, 1);
+            sleep_us(200);
+        }
+        pio_sm_put_blocking(pio0, 3, pixel_grb << 8u);
+        sleep_us(50);
+        pio_sm_set_enabled(pio0, 3, false);
+        gpio_init(PICOFLY_PIN_LED);
+    # endif
 }
 
 void gpio_disable_input_output(int pin)
@@ -140,13 +137,34 @@ void gpio_enable_input_output(int pin)
 }
 
 void reset_cpu() {
-    gpio_enable_input_output(PIN_RST);
-    gpio_pull_up(PIN_RST);
+    gpio_enable_input_output(PICOFLY_PIN_RST);
+    gpio_pull_up(PICOFLY_PIN_RST);
     sleep_us(1000);
-    gpio_init(PIN_RST);
-    gpio_set_dir(PIN_RST, true);
+    gpio_init(PICOFLY_PIN_RST);
+    gpio_set_dir(PICOFLY_PIN_RST, true);
     sleep_us(2000);
-    gpio_deinit(PIN_RST);
-    gpio_disable_pulls(PIN_RST);
-    gpio_disable_input_output(PIN_RST);
+    gpio_deinit(PICOFLY_PIN_RST);
+    gpio_disable_pulls(PICOFLY_PIN_RST);
+    gpio_disable_input_output(PICOFLY_PIN_RST);
 }
+
+
+
+bool detect_by_pull_up(int frc_pin, int det_pin)
+{
+    bool result = false;
+    if (frc_pin >= 0)
+        gpio_init(frc_pin);
+    gpio_init(det_pin);
+    if (frc_pin >= 0)
+        gpio_set_dir(frc_pin, true);
+    gpio_pull_up(det_pin);
+    sleep_us(15);
+    result = !gpio_get(det_pin);
+    gpio_deinit(det_pin);
+    if (frc_pin >= 0)
+        gpio_deinit(frc_pin);
+    gpio_disable_pulls(det_pin);
+    return result;
+}
+

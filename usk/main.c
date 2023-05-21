@@ -10,7 +10,6 @@
 #include "hardware/xosc.h"
 #include "hardware/watchdog.h"
 #include "boot_detect.h"
-#include "board_detect.h"
 #include "config.h"
 
 #include "misc.h"
@@ -58,11 +57,11 @@ void self_test()
     bool rst_ok = false, cmd_ok = false, d0_ok = false;
     while (!time_reached(tio_time)) {
         if (!rst_ok)
-            rst_ok |= safe_test_voltage(PIN_RST, 1.8f, 0.2f);
+            rst_ok |= safe_test_voltage(PICOFLY_PIN_RST, 1.8f, 0.2f);
         if (!cmd_ok)
-            cmd_ok |= safe_test_voltage(PIN_CMD, 1.8f, 0.2f);
+            cmd_ok |= safe_test_voltage(PICOFLY_PIN_CMD, 1.8f, 0.2f);
         if (!d0_ok)
-            d0_ok |= safe_test_voltage(PIN_DAT, 1.8f, 0.2f);
+            d0_ok |= safe_test_voltage(PICOFLY_PIN_DAT, 1.8f, 0.2f);
         if (rst_ok && cmd_ok && d0_ok)
             break;
     }
@@ -87,7 +86,8 @@ int main()
     // stop watchdog
     *(uint32_t*)(0x40058000 + 0x3000) = (1 << 30);
     // init reset, mosfet and LED
-    detect_board();
+    gpio_pull_down(PICOFLY_PIN_GLI);
+    gpio_disable_input_output(PICOFLY_PIN_RST);
     // clocks & voltage
 	init_system();
     // fuses counter

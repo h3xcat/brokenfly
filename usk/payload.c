@@ -10,7 +10,6 @@
 #include <string.h>
 #include "emmc.pio.h"
 #include "mmc_defs.h"
-#include "board_detect.h"
 
 #define SM_CLK 0
 #define SM_CMDIN 1
@@ -127,7 +126,7 @@ void __time_critical_func(cmd_write)(uint8_t cmd, uint32_t argument)
     uint8_t data[7];
     // switch to the CMD write
     pio_sm_set_enabled(pio0, SM_OUT, false);
-    pio_sm_set_out_pins(pio0, SM_OUT, PIN_CMD, 1);
+    pio_sm_set_out_pins(pio0, SM_OUT, PICOFLY_PIN_CMD, 1);
     pio_sm_set_enabled(pio0, SM_OUT, true);
 
 	data[0] = cmd | 0x40;
@@ -148,7 +147,7 @@ bool __time_critical_func(dat_write)()
 {
     // switch to the DAT write
     pio_sm_set_enabled(pio0, SM_OUT, false);
-    pio_sm_set_out_pins(pio0, SM_OUT, PIN_DAT, 1);
+    pio_sm_set_out_pins(pio0, SM_OUT, PICOFLY_PIN_DAT, 1);
     pio_sm_set_enabled(pio0, SM_OUT, true);
     uint8_t * buffer = data_buf;
 	uint16_t crc = crc_itu_t(0, buffer, 512);
@@ -170,7 +169,7 @@ bool __time_critical_func(dat_write)()
     sleep_us(300);
     int attempts = 200;
     while (--attempts) {
-        if (gpio_get(PIN_DAT))
+        if (gpio_get(PICOFLY_PIN_DAT))
             return true;
         sleep_ms(1);
     }
@@ -318,37 +317,37 @@ void start_mmc()
     // clocks
     pio_sm_config c = sd_clk_program_get_default_config(clk_pio_offset);
     sm_config_set_clkdiv_int_frac(&c, DIVIDER, 0); // 375 KHz
-    sm_config_set_sideset_pins (&c, PIN_CLK); // to keep CPU in reset but not wdog
-    sm_config_set_set_pins (&c, PIN_RST, 1); // SD clock
+    sm_config_set_sideset_pins (&c, PICOFLY_PIN_CLK); // to keep CPU in reset but not wdog
+    sm_config_set_set_pins (&c, PICOFLY_PIN_RST, 1); // SD clock
     pio_sm_init(pio0, SM_CLK, clk_pio_offset, &c);
-    pio_sm_set_consecutive_pindirs (pio0, SM_CLK, PIN_CLK, 1, true);
+    pio_sm_set_consecutive_pindirs (pio0, SM_CLK, PICOFLY_PIN_CLK, 1, true);
 
     // CMD sniffer
     c = in_cmd_or_dat_program_get_default_config(sdin_pio_offset);
     sm_config_set_clkdiv_int_frac(&c, DIVIDER, 0);
-    sm_config_set_in_pins (&c, PIN_CMD);
+    sm_config_set_in_pins (&c, PICOFLY_PIN_CMD);
     sm_config_set_in_shift(&c, false, true, 32);
     sm_config_set_out_shift(&c, false, true, 32);
-    sm_config_set_jmp_pin (&c, PIN_CMD);
+    sm_config_set_jmp_pin (&c, PICOFLY_PIN_CMD);
     pio_sm_init(pio0, SM_CMDIN, sdin_pio_offset, &c);
 
     // DAT sniffer
     c = in_cmd_or_dat_program_get_default_config(sdin_pio_offset);
     sm_config_set_clkdiv_int_frac(&c, DIVIDER, 0);
-    sm_config_set_in_pins (&c, PIN_DAT);
+    sm_config_set_in_pins (&c, PICOFLY_PIN_DAT);
     sm_config_set_in_shift(&c, false, true, 32);
     sm_config_set_out_shift(&c, false, true, 32);
-    sm_config_set_jmp_pin (&c, PIN_DAT);
+    sm_config_set_jmp_pin (&c, PICOFLY_PIN_DAT);
     pio_sm_init(pio0, SM_DATIN, sdin_pio_offset, &c);
 
     // CMD writer
     c = out_cmd_or_dat_program_get_default_config(sdout_pio_offset);
     sm_config_set_clkdiv_int_frac(&c, DIVIDER, 0);
-    sm_config_set_out_pins (&c, PIN_CMD, 1);
-    sm_config_set_in_pins (&c, PIN_CLK);
+    sm_config_set_out_pins (&c, PICOFLY_PIN_CMD, 1);
+    sm_config_set_in_pins (&c, PICOFLY_PIN_CLK);
     sm_config_set_out_shift(&c, false, true, 32);
     sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_TX);
-    sm_config_set_jmp_pin (&c, PIN_CLK);
+    sm_config_set_jmp_pin (&c, PICOFLY_PIN_CLK);
     pio_sm_init(pio0, SM_OUT, sdout_pio_offset, &c);
 
     // put CPU into reset state
@@ -360,7 +359,7 @@ void start_mmc()
     // configure pins
     for (int i = 0; i < 32; i++)
     {
-        if (i == PIN_CLK || i == PIN_RST || i == PIN_CMD || (i == PIN_DAT))
+        if (i == PICOFLY_PIN_CLK || i == PICOFLY_PIN_RST || i == PICOFLY_PIN_CMD || (i == PICOFLY_PIN_DAT))
         {
             gpio_init(i);
             gpio_pull_up(i);
@@ -370,7 +369,7 @@ void start_mmc()
             pio_gpio_init(pio0, i);
         }
     }
-    gpio_enable_input_output(PIN_RST);
+    gpio_enable_input_output(PICOFLY_PIN_RST);
 }
 
 void stop_mmc()
@@ -378,14 +377,14 @@ void stop_mmc()
     pio_set_sm_mask_enabled(pio0, 0xF, false);
     for (int i = 0; i < 32; i++)
     {
-        if (i == PIN_CLK || i == PIN_RST || i == PIN_CMD || (i == PIN_DAT))
+        if (i == PICOFLY_PIN_CLK || i == PICOFLY_PIN_RST || i == PICOFLY_PIN_CMD || (i == PICOFLY_PIN_DAT))
         {
             gpio_deinit(i);
             gpio_set_input_hysteresis_enabled(i, false);
             gpio_disable_pulls(i);
         }
     }
-    gpio_disable_input_output(PIN_RST);
+    gpio_disable_input_output(PICOFLY_PIN_RST);
 }
 
 bool init_op_cond() {
@@ -431,7 +430,7 @@ bool mmc_initialize() {
     }
     for(int i = 0; i < 100; i++) {
         sleep_ms(1);
-        if (gpio_get(PIN_DAT))
+        if (gpio_get(PICOFLY_PIN_DAT))
             return true;
     }
     return false;
@@ -576,25 +575,25 @@ bool fast_check() {
     {
         const static char i2c_sda[] = {0x81, 0xFF, 0x7F, 0x00, 0xF8, 0x01, 0xE0, 0xE1, 0x1F, 0x7E, 0x00, 0x00, 0x00, 0x80, 0x9F};
         const static char i2c_scl[] = {0x33, 0x33, 0x33, 0x33, 0x33, 0xCC, 0xCC, 0xCC, 0xCC, 0x0C, 0x33, 0x33, 0x33, 0x33, 0xC3};
-        gpio_pull_up(sda_pin()); // sda
-        gpio_pull_up(scl_pin()); // scl
-        gpio_init(sda_pin());
-        gpio_init(scl_pin());
+        gpio_pull_up(PICOFLY_PIN_SDA); // sda
+        gpio_pull_up(PICOFLY_PIN_SCL); // scl
+        gpio_init(PICOFLY_PIN_SDA);
+        gpio_init(PICOFLY_PIN_SCL);
         for (int i = 0; i < sizeof(i2c_sda); i++)
         {
             for (int j = 0; j < 8; j++) 
             {
                 bool sda_bit = i2c_sda[i] & (1 << j);
                 bool scl_bit = i2c_scl[i] & (1 << j);
-                gpio_set_dir(sda_pin(), !sda_bit);
-                gpio_set_dir(scl_pin(), !scl_bit);
+                gpio_set_dir(PICOFLY_PIN_SDA, !sda_bit);
+                gpio_set_dir(PICOFLY_PIN_SCL, !scl_bit);
                 sleep_us(1);
             }
         }
-        gpio_disable_pulls(sda_pin());
-        gpio_disable_pulls(scl_pin());
-        gpio_deinit(sda_pin());
-        gpio_deinit(scl_pin());
+        gpio_disable_pulls(PICOFLY_PIN_SDA);
+        gpio_disable_pulls(PICOFLY_PIN_SCL);
+        gpio_deinit(PICOFLY_PIN_SDA);
+        gpio_deinit(PICOFLY_PIN_SCL);
     }
     stop_mmc();
     return is_space_bl;

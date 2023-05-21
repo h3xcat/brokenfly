@@ -7,7 +7,6 @@
 #include "glitch.h"
 #include <stdio.h>
 #include "misc.h"
-#include "board_detect.h"
 #include "hardware/structs/rosc.h"
 
 extern uint32_t gsniff_pio_offset;
@@ -16,8 +15,8 @@ extern uint32_t gtrig_pio_offset;
 
 void init_gsniff_pio() {
     pio_sm_config c = glitch_sniff_cmd_program_get_default_config(gsniff_pio_offset);
-    sm_config_set_in_pins(&c, PIN_CMD);
-    sm_config_set_jmp_pin(&c, PIN_CMD);
+    sm_config_set_in_pins(&c, PICOFLY_PIN_CMD);
+    sm_config_set_jmp_pin(&c, PICOFLY_PIN_CMD);
     sm_config_set_in_shift(&c, false, true, 32);
     sm_config_set_out_shift(&c, false, false, 32);
     sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_RX);
@@ -27,8 +26,8 @@ void init_gsniff_pio() {
 
 void init_dat0_pio() {
     pio_sm_config c = glitch_dat_waiter_program_get_default_config(dsniff_pio_offset);
-    sm_config_set_in_pins(&c, PIN_DAT);
-    sm_config_set_jmp_pin(&c, PIN_DAT);
+    sm_config_set_in_pins(&c, PICOFLY_PIN_DAT);
+    sm_config_set_jmp_pin(&c, PICOFLY_PIN_DAT);
     sm_config_set_in_shift(&c, false, true, 32);
     sm_config_set_out_shift(&c, false, false, 32);
     sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_RX);
@@ -41,24 +40,24 @@ extern bool mariko;
 void init_trigger_pio() {
     uint offset = gtrig_pio_offset;
     pio_sm_config c = glitch_trigger_program_get_default_config(offset);
-    sm_config_set_sideset_pins (&c, gli_pin());
+    sm_config_set_sideset_pins (&c, PICOFLY_PIN_GLI);
     sm_config_set_out_shift(&c, false, true, 32);
     
-    pio_sm_set_consecutive_pindirs(pio1, G_TRIG_SM, gli_pin(), 1, true);
+    pio_sm_set_consecutive_pindirs(pio1, G_TRIG_SM, PICOFLY_PIN_GLI, 1, true);
     pio_sm_init(pio1, G_TRIG_SM, offset, &c);
     pio_sm_set_enabled(pio1, G_TRIG_SM, true);
-    pio_gpio_init(pio1, gli_pin());
-    gpio_set_slew_rate(gli_pin(), GPIO_SLEW_RATE_FAST);
+    pio_gpio_init(pio1, PICOFLY_PIN_GLI);
+    gpio_set_slew_rate(PICOFLY_PIN_GLI, GPIO_SLEW_RATE_FAST);
 }
 
 void init_glitch_pio() {
-    for (int i = PIN_CLK; i <= PIN_DAT; i++)
+    for (int i = PICOFLY_PIN_CLK; i <= PICOFLY_PIN_DAT; i++)
     {
         gpio_init(i);
         gpio_enable_input_output(i);
         gpio_pull_up(i);
     }
-    gpio_init(gli_pin());
+    gpio_init(PICOFLY_PIN_GLI);
     init_gsniff_pio();
     init_dat0_pio();
     init_trigger_pio();
@@ -66,13 +65,13 @@ void init_glitch_pio() {
 
 void deinit_glitch_pio() {
     pio_set_sm_mask_enabled(pio1, 0x3, false);
-    for (int i = PIN_CLK; i <= PIN_DAT; i++)
+    for (int i = PICOFLY_PIN_CLK; i <= PICOFLY_PIN_DAT; i++)
     {
             gpio_deinit(i);
             gpio_disable_pulls(i);
             gpio_disable_input_output(i);
     }
-    gpio_deinit(gli_pin());
+    gpio_deinit(PICOFLY_PIN_GLI);
 }
 
 int do_glitch(int delay, int width, int total_ms, int after_ms) {
