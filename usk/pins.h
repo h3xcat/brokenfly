@@ -31,6 +31,13 @@
 #define PICOFLY_PIN_LED_RED 17
 #define PICOFLY_PIN_LED_GRN 16
 #define PICOFLY_PIN_LED_BLU 25
+#elif defined(PICOFLY_HAL9000)
+#define PICOFLY_PIN_GLI 0
+#define PICOFLY_PIN_SDA 0
+#define PICOFLY_PIN_SCL 0
+
+#define PICOFLY_PIN_LED 0
+#define PICOFLY_PIN_LED_PWR 0
 #elif defined(RASPBERRYPI_PICO)
 #error "Not supported"
 // #define PICOFLY_PIN_GLI 21

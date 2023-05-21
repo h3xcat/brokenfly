@@ -10,9 +10,10 @@ WORKDIR /workspace
 # Checkout raspberrypi/pico-sdk
 RUN git clone --recursive https://github.com/raspberrypi/pico-sdk.git /workspace/pico-sdk
 
-# Checkout code
+# Copy local files
 COPY ./busk /workspace/busk
 COPY ./usk /workspace/usk
+COPY ./boards /workspace/boards
 
 # Create symbolic links
 RUN ln -s /workspace/pico-sdk/external/pico_sdk_import.cmake /workspace/busk/pico_sdk_import.cmake
