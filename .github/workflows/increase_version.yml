@@ -1,0 +1,22 @@
+name: Increase Version
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Increase version
+      run: |
+        echo $((`cat VERSION` + 1)) > VERSION
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git commit -am "Increase VERSION"
+        git push
